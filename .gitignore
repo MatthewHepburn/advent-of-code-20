@@ -1,2 +1,6 @@
 input
+testinput
+solve
 *.swp
+*.hi
+*.o
