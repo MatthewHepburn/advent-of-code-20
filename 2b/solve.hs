@@ -2,15 +2,14 @@ import System.IO
 import Data.List.Split
 
 main = do
-    handle <- openFile "testinput" ReadMode
+    handle <- openFile "input" ReadMode
     fileContents <- hGetContents handle
     let problemInput = lines fileContents
     let passwordList = map parseLine problemInput
-    print passwordList
     let invalid = filter (\x -> not $ isValid x) passwordList
     let solution = length (filter isValid passwordList)
    
-    print invalid
+    print solution
     hClose handle
 
 type Password = String
@@ -37,11 +36,11 @@ isValid (policy, password) = do
         char = snd policy
     (hasCharAtPos char (fst positions) password) `xor` (hasCharAtPos char (snd positions) password)
 
+
 hasCharAtPos:: Char -> Int -> Password -> Bool
 hasCharAtPos char pos password 
-    | length password > pos = False
+    | length password < pos = False
     | otherwise = password !! (pos - 1) == char
 
-// TODO: QUICK CHECK HERE
 xor :: Bool -> Bool -> Bool
 xor a b = (a || b) && not (a && b) 
