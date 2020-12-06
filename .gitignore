@@ -4,3 +4,4 @@ solve
 *.swp
 *.hi
 *.o
+.idea
