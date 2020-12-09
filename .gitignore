@@ -1,6 +1,8 @@
 input
 testinput
 solve
+main
+*.dyn_*
 *.swp
 *.hi
 *.o
