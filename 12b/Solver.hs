@@ -1,8 +1,11 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Solver where
 
 import Data.List
 import Text.Regex.PCRE
 import Text.Regex.Base.RegexLike
+import Test.QuickCheck
 
 type Position = (Int, Int)
 type Waypoint = (Int, Int)
@@ -27,6 +30,10 @@ move (dirX, dirY) (posX, posY) dist = (posX + distX, posY + distY)
 moveToWaypoint:: Int -> Position -> Waypoint -> Position
 moveToWaypoint 0 pos _ = pos
 moveToWaypoint n (p1, p2) (w1, w2) = moveToWaypoint (n-1) (p1 + w1, p2 + w2) (w1, w2)
+
+-- Check that 4 rotations return the original result
+prop_4rotationsAreIdentity:: Waypoint -> Bool
+prop_4rotationsAreIdentity waypoint = rotateRightNTimes 4 waypoint == waypoint
 
 rotateRightNTimes:: Int -> Waypoint -> Waypoint
 rotateRightNTimes 0 waypoint = waypoint
@@ -61,3 +68,6 @@ parseInstruction str
 
 manhattanDistance:: Position -> Int
 manhattanDistance (a, b) = (abs a) + (abs b)
+
+return []
+runTests = $quickCheckAll

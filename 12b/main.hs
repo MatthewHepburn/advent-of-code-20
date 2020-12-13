@@ -5,6 +5,8 @@ import System.IO
 import System.Exit
 
 main = do
+    testResult <- Solver.runTests
+    if not testResult then die "Test failure" else putStrLn ""
     handle <- openFile "input" ReadMode
     fileContents <- hGetContents handle
 
