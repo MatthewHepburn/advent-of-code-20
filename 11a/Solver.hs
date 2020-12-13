@@ -10,9 +10,10 @@ type Bounds = ((Int, Int), (Int, Int))
 
 
 solve:: String -> Int
-solve str = length [ char | char <- elems lastBoard, char == '#']
+solve str = countOccupied lastBoard
     where
-        lastBoard = getLastBoard startBounds startBoard
+        lastBoard = findLast allBoards
+        allBoards = scanl  (\b i -> step b startBounds) startBoard [0..]
         startBoard = parseBoard str
         startBounds = bounds startBoard
 
@@ -42,36 +43,11 @@ step board bounds = listArray bounds newValues
         positions = indices board
         newValues = [ newValueForPos board bounds pos | pos <- positions]
 
-testStep:: Board -> Board
-testStep board = listArray thisBounds newValues
-    where
-        thisBounds = bounds board
-        positions = indices board
-        newValues = [ (show (length (getNeighbours board thisBounds pos))) !! 0 | pos <- positions]
-
-testStep2:: Board -> Board
-testStep2 board = listArray thisBounds newValues
-    where
-        thisBounds = bounds board
-        positions = indices board
-        newValues = [ (show a) !! 0 | (a,b) <- positions]
-
-
-getLastBoard:: Bounds -> Board -> Board
-getLastBoard bounds lastBoard
-    | nextBoard /= lastBoard = getLastBoard bounds nextBoard
-    | otherwise = lastBoard
-    where
-        nextBoard = step lastBoard bounds
-
-allSteps:: Bounds -> Board -> [Board] -> [Board]
-allSteps bounds lastBoard acc
-    | (elems $! nextBoard) /= (elems $! lastBoard) = allSteps bounds nextBoard newAcc
-    | length acc > 2 = reverse acc
-    | otherwise = reverse acc
-    where
-        nextBoard = step lastBoard bounds
-        newAcc = nextBoard:acc
+findLast:: [Board] -> Board
+findLast (a:[]) = a
+findLast (a:b:cs)
+    | a == b = a
+    | otherwise = findLast (b:cs)
 
 inBounds:: Bounds -> Position -> Bool
 inBounds bounds (a, b)
@@ -87,7 +63,7 @@ inBounds bounds (a, b)
         maxB = snd upperBound
 
 getAtPos:: Board -> Position -> Char
-getAtPos board (y, x) = board ! (y, x)
+getAtPos board (a, b) = board ! (a, b)
 
 getNeighbourPositions:: Board -> Bounds -> Position -> [Position]
 getNeighbourPositions board bounds (y, x)
@@ -101,25 +77,9 @@ getNeighbourPositions board bounds (y, x)
                               (y, x - 1), (y, x + 1),
                               (y + 1, x - 1), (y + 1, x), (y + 1, x + 1)]
 
---
+
 getNeighbours:: Board -> Bounds -> Position -> [Char]
 getNeighbours board bounds pos = [ getAtPos board pos | pos <- getNeighbourPositions board bounds pos]
-
--- Try to skip the accesses we don't care about to make this faster
---getRelevantNeighbours:: Board  -> Bounds -> Position -> [Char]
---getRelevantNeighbours board bounds pos
---    | targetValue == '.' = []
---    | targetValue == 'L' = getZeroOrOneOccupied board neighbouringPositions
---    | otherwise = [ getAtPos board pos | pos <- neighbouringPositions]
---    where
---        neighbouringPositions = getNeighbourPositions board bounds pos
---        targetValue = getAtPos board pos
-
-getZeroOrOneOccupied:: Board -> [Position] -> [Char]
-getZeroOrOneOccupied _ [] = []
-getZeroOrOneOccupied b (p:pos)
-    | getAtPos b p == '#' = ['#']
-    | otherwise = getZeroOrOneOccupied b pos
 
 newValueForPos:: Board -> Bounds -> Position -> Char
 newValueForPos board bounds pos = newValue curValue neighbours
