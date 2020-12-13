@@ -10,7 +10,7 @@ main = do
     handle <- openFile "input" ReadMode
     fileContents <- hGetContents handle
 
-    print $ Solver.solve fileContents
+    putStr $ unlines $ Solver.solve fileContents
     hClose handle
 
 

@@ -14,13 +14,15 @@ type State = (Position, Waypoint)
 
 data Instruction = Fwd Int | Mov Direction Int | Trn Int deriving Show
 
-solve:: String -> Int
-solve str = manhattanDistance $ fst $ last states
+solve:: String -> [String]
+solve str = (("Start = " ++ show startState):annotatedStates)++ ([show $ manhattanDistance finalPos])
     where
         instructionLines = filter (\x -> length x > 0) (lines str)
         instructions = map parseInstruction instructionLines
         startState = ((0,0), (10, 1))
         states = scanl (\state instruction -> step instruction state) startState instructions
+        finalPos = fst $ last states
+        annotatedStates = [show instruction ++ " ->  \tS@ \t" ++ (pprintTuple pos) ++ "\tW@ \t" ++ (pprintTuple waypoint) | ((pos, waypoint), instruction) <- zip (tail states) instructions]
 
 move:: Direction -> Position -> Int -> Position
 move (dirX, dirY) (posX, posY) dist = (posX + distX, posY + distY)
@@ -40,13 +42,7 @@ rotateRightNTimes 0 waypoint = waypoint
 rotateRightNTimes n waypoint = rotateRightNTimes (n - 1) (rotateRight waypoint)
 
 rotateRight:: Waypoint -> Waypoint
-rotateRight (0, y) = (0, -y)
-rotateRight (x, 0) = (-x, 0)
-rotateRight (x, y)
-    | x > 0 && y > 0 = (x, -y)
-    | x > 0 && y < 0 = (-x, y)
-    | x < 0 && y < 0 = (x, -y)
-    | x < 0 && y > 0 = (-x, y)
+rotateRight (x, y) = (y, -x)
 
 step:: Instruction -> State -> State
 step (Fwd times) (position, waypoint) = ((moveToWaypoint times position waypoint), waypoint)
@@ -68,6 +64,16 @@ parseInstruction str
 
 manhattanDistance:: Position -> Int
 manhattanDistance (a, b) = (abs a) + (abs b)
+
+pprintTuple:: (Int, Int) -> String
+pprintTuple (a, b) = (printEw a) ++ " \t" ++ (printNs b)
+    where
+        printEw x
+            | x >= 0 = "E: " ++ (show x)
+            | otherwise = "W: " ++ (show (-x))
+        printNs x
+            | x >= 0 = "N: " ++ (show x)
+            | otherwise = "S: " ++ (show (-x))
 
 return []
 runTests = $quickCheckAll
