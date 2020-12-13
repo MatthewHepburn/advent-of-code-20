@@ -17,7 +17,7 @@ solve str = length [ char | char <- elems lastBoard, char == '#']
         startBounds = bounds startBoard
 
 parseBoard:: String -> Board
-parseBoard s = listArray ((1, 1), (nColumns, nRows)) asSingleLine
+parseBoard s = listArray ((1, 1), (nRows, nColumns)) asSingleLine
     where
         boardLines = filter (\x -> length x > 0) $ lines s
         nRows = length boardLines
@@ -29,7 +29,7 @@ showBoard x = unlines chunked
     where
         elements = elems x
         upperBound = snd $ bounds x
-        rowLength = fst $ upperBound
+        rowLength = snd $ upperBound
         chunked = reverse $ chunk elements rowLength []
 
 chunk:: String -> Int -> [String] -> [String]
@@ -41,6 +41,21 @@ step board bounds = listArray bounds newValues
     where
         positions = indices board
         newValues = [ newValueForPos board bounds pos | pos <- positions]
+
+testStep:: Board -> Board
+testStep board = listArray thisBounds newValues
+    where
+        thisBounds = bounds board
+        positions = indices board
+        newValues = [ (show (length (getNeighbours board thisBounds pos))) !! 0 | pos <- positions]
+
+testStep2:: Board -> Board
+testStep2 board = listArray thisBounds newValues
+    where
+        thisBounds = bounds board
+        positions = indices board
+        newValues = [ (show a) !! 0 | (a,b) <- positions]
+
 
 getLastBoard:: Bounds -> Board -> Board
 getLastBoard bounds lastBoard
@@ -82,23 +97,23 @@ getNeighbourPositions board bounds (y, x)
     where
         topLeft = (y - 1, x -1)
         bottomRight = (y + 1, x + 1)
-        possibleNeighbours = [topLeft, (y - 1, x), (y - 1, x + 1),
+        possibleNeighbours = [(y - 1, x -1), (y - 1, x), (y - 1, x + 1),
                               (y, x - 1), (y, x + 1),
-                              (y + 1, x - 1), (y + 1, x), bottomRight]
+                              (y + 1, x - 1), (y + 1, x), (y + 1, x + 1)]
 
 --
---getNeighbours:: Board -> Position -> [Char]
---getNeighbours b pos = [ getAtPos b pos | pos <- getNeighbourPositions b pos]
+getNeighbours:: Board -> Bounds -> Position -> [Char]
+getNeighbours board bounds pos = [ getAtPos board pos | pos <- getNeighbourPositions board bounds pos]
 
 -- Try to skip the accesses we don't care about to make this faster
-getRelevantNeighbours:: Board  -> Bounds -> Position -> [Char]
-getRelevantNeighbours board bounds pos
-    | targetValue == '.' = []
-    | targetValue == 'L' = getZeroOrOneOccupied board neighbouringPositions
-    | otherwise = [ getAtPos board pos | pos <- neighbouringPositions]
-    where
-        neighbouringPositions = getNeighbourPositions board bounds pos
-        targetValue = getAtPos board pos
+--getRelevantNeighbours:: Board  -> Bounds -> Position -> [Char]
+--getRelevantNeighbours board bounds pos
+--    | targetValue == '.' = []
+--    | targetValue == 'L' = getZeroOrOneOccupied board neighbouringPositions
+--    | otherwise = [ getAtPos board pos | pos <- neighbouringPositions]
+--    where
+--        neighbouringPositions = getNeighbourPositions board bounds pos
+--        targetValue = getAtPos board pos
 
 getZeroOrOneOccupied:: Board -> [Position] -> [Char]
 getZeroOrOneOccupied _ [] = []
@@ -110,7 +125,7 @@ newValueForPos:: Board -> Bounds -> Position -> Char
 newValueForPos board bounds pos = newValue curValue neighbours
     where
         curValue = getAtPos board pos
-        neighbours = getRelevantNeighbours board bounds pos
+        neighbours = getNeighbours board bounds pos
 
 newValue:: Char -> [Char] -> Char
 newValue char neighbours
@@ -120,3 +135,6 @@ newValue char neighbours
     | otherwise = char
     where
         occupiedNeighbours = length $ filter (\x -> x == '#') neighbours
+
+countOccupied:: Board -> Int
+countOccupied b = length [ char | char <- elems b, char == '#']

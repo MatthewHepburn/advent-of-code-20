@@ -3,49 +3,26 @@ module Main where
 import qualified Solver as Solver
 import System.IO
 import System.Exit
-import Data.Array
+import Data.Array.Unboxed
+
+findLast:: [Solver.Board] -> Solver.Board
+findLast (a:[]) = a
+findLast (a:b:cs)
+    | a == b = a
+    | otherwise = findLast (b:cs)
 
 main = do
     handle <- openFile "input" ReadMode
     fileContents <- hGetContents handle
 
---    let startBoard = Solver.parseBoard fileContents
---    let thisBounds = bounds startBoard
-----    let allBoards = Solver.allSteps (bounds startBoard) startBoard [startBoard]
---
---    putStrLn "Start = "
---    putStr $ Solver.showBoard startBoard
---    putStrLn "--------"
---
---    let board1 = Solver.step startBoard thisBounds
---    putStrLn "After 1 = "
---    putStr $ Solver.showBoard board1
---    putStrLn "--------"
---
---    let board2 = Solver.step board1 thisBounds
---    putStrLn "After 2 = "
---    putStr $ Solver.showBoard board2
---    putStrLn "--------"
---
---    let board3 = Solver.step board2 thisBounds
---    putStrLn "After 3 = "
---    putStr $ Solver.showBoard board3
---    putStrLn "--------"
---
---
---    let board4 = Solver.step board3 thisBounds
---    putStrLn "After 2 = "
---    putStr $ Solver.showBoard board4
---    putStrLn "--------"
+    let startBoard = Solver.parseBoard fileContents
+    let thisBounds = bounds startBoard
+    let iterations = [0..]
+    let allBoards = scanl  (\b i -> Solver.step b thisBounds) startBoard iterations
 
---    putStrLn "End = "
---    putStr $ Solver.showBoard $ last allBoards
---    putStrLn "--------"
+    putStr $ Solver.showBoard (findLast allBoards)
 
-
-    let solution = Solver.solve fileContents
---
-    print solution
+    print $ Solver.countOccupied (findLast allBoards)
     hClose handle
 
 
